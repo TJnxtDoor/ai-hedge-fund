@@ -774,3 +774,104 @@ if __name__ == "__main__":
 
     performance_metrics = backtester.run_backtest()
     performance_df = backtester.analyze_performance()
+
+    # Save performance DataFrame to CSV
+    if not performance_df.empty:
+        cvs_filename = f"backtest+performance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        performance_df.to_csv(cvs_filename)
+        print(f"Performance data saved to {cvs_filename}")
+        if performance_metrics.get("max_drawdown_date"):
+            print(f"Maximum Drawdown of {abs(performance_metrics['max_drawdown']):.2f}% occurred on {performance_metrics['max_drawdown_date']}.")
+        else:
+            print(f"Maximum Drawdown of {abs(performance_metrics['max_drawdown']):.2f}%.")
+
+            # performance_df.to_excel(f"backtest+performance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx")
+        print(f"Performance data saved to {cvs_filename}")
+
+    print("\nBacktesting complete.")
+
+def execute_trade(self, ticker: str, action: str, quantity: float, current_price: float):
+    position = self.portfolio["positions"][ticker]
+    cost = quantity * current_price
+
+    if action == "buy":
+        if cost <= self.portfolio["cash"]:
+            # Weighted average cost basis
+            old_shares = position["long"]
+            old_cost_basis = position["long_cost_basis"]
+            total_shares = old_shares + quantity
+            if total_shares > 0:
+                total_old_cost = old_cost_basis * old_shares
+                total_new_cost = cost
+                position["long_cost_basis"] = (total_old_cost + total_new_cost) / total_shares
+            position["long"] += quantity
+            self.portfolio["cash"] -= cost
+            return quantity
+        else:
+            # Calculate maximum purchasable quantity
+            max_quantity = int(self.portfolio["cash"] / current_price)
+            if max_quantity > 0:
+                cost = max_quantity * current_price
+                old_shares = position["long"]
+                old_cost_basis = position["long_cost_basis"]
+                total_shares = old_shares + max_quantity
+                if total_shares > 0:
+                    total_old_cost = old_cost_basis * old_shares
+                    total_new_cost = cost
+                    position["long_cost_basis"] = (total_old_cost + total_new_cost) / total_shares
+                position["long"] += max_quantity
+                self.portfolio["cash"] -= cost
+                return max_quantity
+            return 0
+
+    elif action == "sell":
+        quantity = min(quantity, position["long"])
+        if quantity > 0:
+            avg_long_price = position["long_cost_basis"] if position["long"] > 0 else 0
+            realized_gain = (current_price - avg_long_price) * quantity
+            position["long"] -= quantity
+            self.portfolio["cash"] += quantity * current_price
+            self.portfolio["realized_gains"][ticker]["long"] += realized_gain
+            if position["long"] == 0:
+                position["long_cost_basis"] = 0.0
+            return quantity
+        return 0
+
+    elif action == "short":
+        proceeds = quantity * current_price
+        margin_required = proceeds * self.portfolio["margin_requirement"]
+        if margin_required <= self.portfolio["cash"]:
+            old_short_shares = position["short"]
+            old_cost_basis = position["short_cost_basis"]
+            total_shares = old_short_shares + quantity
+            if total_shares > 0:
+                total_old_cost = old_cost_basis * old_short_shares
+                total_new_cost = current_price * quantity
+                position["short_cost_basis"] = (total_old_cost + total_new_cost) / total_shares
+            position["short"] += quantity
+            position["short_margin_used"] += margin_required
+            self.portfolio["margin_used"] += margin_required
+            self.portfolio["cash"] += proceeds - margin_required
+            return quantity
+        return 0
+
+    elif action == "cover":
+        quantity = min(quantity, position["short"])
+        if quantity > 0:
+            cover_cost = quantity * current_price
+            avg_short_price = position["short_cost_basis"] if position["short"] > 0 else 0
+            realized_gain = (avg_short_price - current_price) * quantity
+            margin_to_release = (quantity / position["short"]) * position["short_margin_used"] if position["short"] > 0 else 0
+            position["short"] -= quantity
+            position["short_margin_used"] -= margin_to_release
+            self.portfolio["margin_used"] -= margin_to_release
+            self.portfolio["cash"] += margin_to_release - cover_cost
+            self.portfolio["realized_gains"][ticker]["short"] += realized_gain
+            if position["short"] == 0:
+                position["short_cost_basis"] = 0.0
+            return quantity
+        return 0
+
+    return 0
+                
+    
