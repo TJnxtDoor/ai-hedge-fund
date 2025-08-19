@@ -61,6 +61,8 @@ class Cache:
         """Append new company news to cache."""
         self._company_news_cache[ticker] = self._merge_data(self._company_news_cache.get(ticker), data, key_field="date")
 
+        
+
 
 # Global cache instance
 _cache = Cache()

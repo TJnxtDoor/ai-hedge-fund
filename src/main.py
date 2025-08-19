@@ -225,6 +225,7 @@ if __name__ == "__main__":
                     ("pointer", "fg:green bold"),
                     ("highlighted", "fg:green"),
                     ("answer", "fg:green bold"),
+                    
                 ]
             ),
         ).ask()

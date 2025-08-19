@@ -603,6 +603,7 @@ class Backtester:
         print(f"Max Consecutive Losses: {Fore.RED}{max_consecutive_losses}{Style.RESET_ALL}")
 
         return performance_df
+    
 
 
 ### 4. Run the Backtest #####
