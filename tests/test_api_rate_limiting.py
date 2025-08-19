@@ -7,25 +7,23 @@ from src.tools.api import _make_api_request, get_prices
 class TestRateLimiting:
     """Test suite for API rate limiting functionality."""
 
-   
-    """
-     @patch('src.tools.api._cache')
-        Test the behavior of the `get_prices` function when cached data is available.
-        This test ensures that:
-        1. Cached data is used when available, avoiding unnecessary API calls.
-        2. The cache is checked for the requested data.
-        3. No API calls are made if the data is found in the cache.
-        4. The `time.sleep` function is not called during the process.
-        Mocks:
-        - `mock_get`: Mocks the `requests.get` function to prevent actual API calls.
-        - `mock_sleep`: Mocks the `time.sleep` function to avoid delays during testing.
-        - `mock_cache`: Mocks the cache mechanism to simulate cached data retrieval.
-        Assertions:
-        - The function returns the cached data when available.
-        - The cache is queried for the requested data.
-        - No API calls are made if the data is found in the cache.
-        - The `time.sleep` function is not called.
-    """
+    @patch('src.tools.api._cache')
+    
+    #Test the behavior of the `get_prices` function when cached data is available.
+    #This test ensures that:
+    #1. Cached data is used when available, avoiding unnecessary API calls.
+    #2. The cache is checked for the requested data.
+    #3. No API calls are made if the data is found in the cache.
+    #4. The `time.sleep` function is not called during the process.
+    #Mocks:
+    #- `mock_get`: Mocks the `requests.get` function to prevent actual API calls.
+    #- `mock_sleep`: Mocks the `time.sleep` function to avoid delays during testing.
+    #- `mock_cache`: Mocks the cache mechanism to simulate cached data retrieval.
+    #Assertions:
+    #- The function returns the cached data when available.
+    #- The cache is queried for the requested data.
+    #- No API calls are made if the data is found in the cache.
+    #- The `time.sleep` function is not called.
     @patch('src.tools.api.time.sleep')
     @patch('src.tools.api.requests.get')
     def test_use_cached_data_when_available(self, mock_get, mock_sleep, mock_cache):
@@ -50,7 +48,6 @@ class TestRateLimiting:
         # Verify cache was checked
         mock_cache.get_prices.assert_called_once()
 
-"""
     @patch('src.tools.api.time.sleep')
     @patch('src.tools.api.requests.get')
     def test_handles_single_rate_limit(self, mock_get, mock_sleep):
@@ -88,7 +85,7 @@ class TestRateLimiting:
     @patch('src.tools.api.time.sleep')
     @patch('src.tools.api.requests.get')
     def test_handles_multiple_rate_limits(self, mock_get, mock_sleep):
-        """Test that API retries multiple times after 429s."""
+        """Test that API retries multiple times after 429 responses."""
         # Setup mock responses: three 429s, then 200
         mock_429_response = Mock()
         mock_429_response.status_code = 429
